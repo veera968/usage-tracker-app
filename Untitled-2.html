@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Usage Tracker App</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #e0e7ff 0%, #f4f4f4 100%);
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 500px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 32px 28px 24px 28px;
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(60,60,120,0.18);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #3b3b6d;
+            letter-spacing: 1px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+        input, button {
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+        }
+        input:focus {
+            outline: 2px solid #6366f1;
+            border-color: #6366f1;
+        }
+        button[type="submit"] {
+            background: linear-gradient(90deg, #6366f1 60%, #60a5fa 100%);
+            color: #fff;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button[type="submit"]:hover {
+            background: linear-gradient(90deg, #4f46e5 60%, #2563eb 100%);
+        }
+        .tracker-list {
+            list-style: none;
+            padding: 0;
+        }
+        .tracker-item {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(90deg, #f1f5f9 60%, #e0e7ff 100%);
+            margin-bottom: 14px;
+            padding: 12px 10px;
+            border-radius: 10px;
+            gap: 16px;
+            box-shadow: 0 2px 8px rgba(99,102,241,0.06);
+            transition: box-shadow 0.2s;
+        }
+        .tracker-item:hover {
+            box-shadow: 0 4px 16px rgba(99,102,241,0.13);
+        }
+        .logo-ui {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: #e0e7ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid #6366f1;
+            box-shadow: 0 1px 4px rgba(99,102,241,0.08);
+        }
+        .logo-ui img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            border-radius: 8px;
+            background: #fff;
+        }
+        .logo-placeholder {
+            font-size: 1.8em;
+            color: #6366f1;
+            font-weight: bold;
+            background: #e0e7ff;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+        .tracker-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .tracker-details .name {
+            font-weight: 600;
+            color: #3730a3;
+            font-size: 1.08em;
+        }
+        .tracker-details .url {
+            color: #64748b;
+            font-size: 0.98em;
+            text-decoration: none;
+            word-break: break-all;
+        }
+        .remove-btn {
+            background: #f87171;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 7px 13px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .remove-btn:hover {
+            background: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>
+            <span style="vertical-align:middle;">
+                <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/internetarchive.svg" alt="App Logo" style="width:32px;height:32px;vertical-align:middle;margin-right:8px;">
+            </span>
+            Usage Tracker App
+        </h2>
+        <form id="trackerForm">
+            <input type="text" id="websiteName" placeholder="Website Name" required>
+            <input type="url" id="websiteUrl" placeholder="Website URL (https://...)" required>
+            <input type="url" id="logoUrl" placeholder="Logo/Image URL (optional)">
+            <button type="submit">Add Website</button>
+        </form>
+        <ul class="tracker-list" id="trackerList"></ul>
+    </div>
+    <script>
+        const trackerForm = document.getElementById('trackerForm');
+        const trackerList = document.getElementById('trackerList');
+
+        // Load from localStorage
+        let trackers = JSON.parse(localStorage.getItem('usageTrackers') || '[]');
+
+        function getInitials(name) {
+            return name
+                .split(' ')
+                .map(word => word[0]?.toUpperCase() || '')
+                .join('')
+                .slice(0, 2);
+        }
+
+        function renderTrackers() {
+            trackerList.innerHTML = '';
+            trackers.forEach((tracker, idx) => {
+                const li = document.createElement('li');
+                li.className = 'tracker-item';
+
+                // Logo UI
+                const logoDiv = document.createElement('div');
+                logoDiv.className = 'logo-ui';
+                if (tracker.logoUrl) {
+                    const img = document.createElement('img');
+                    img.src = tracker.logoUrl;
+                    img.alt = tracker.name + ' logo';
+                    img.onerror = function() {
+                        // fallback to initials if image fails
+                        logoDiv.innerHTML = `<span class="logo-placeholder">${getInitials(tracker.name)}</span>`;
+                    };
+                    logoDiv.appendChild(img);
+                } else {
+                    logoDiv.innerHTML = `<span class="logo-placeholder">${getInitials(tracker.name)}</span>`;
+                }
+
+                // Details
+                const detailsDiv = document.createElement('div');
+                detailsDiv.className = 'tracker-details';
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'name';
+                nameDiv.textContent = tracker.name;
+                const urlA = document.createElement('a');
+                urlA.className = 'url';
+                urlA.href = tracker.url;
+                urlA.target = '_blank';
+                urlA.rel = 'noopener noreferrer';
+                urlA.textContent = tracker.url;
+                detailsDiv.appendChild(nameDiv);
+                detailsDiv.appendChild(urlA);
+
+                // Remove button
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.textContent = 'Remove';
+                removeBtn.onclick = () => {
+                    trackers.splice(idx, 1);
+                    localStorage.setItem('usageTrackers', JSON.stringify(trackers));
+                    renderTrackers();
+                };
+
+                li.appendChild(logoDiv);
+                li.appendChild(detailsDiv);
+                li.appendChild(removeBtn);
+                trackerList.appendChild(li);
+            });
+        }
+
+        trackerForm.onsubmit = function(e) {
+            e.preventDefault();
+            const name = document.getElementById('websiteName').value.trim();
+            const url = document.getElementById('websiteUrl').value.trim();
+            const logoUrl = document.getElementById('logoUrl').value.trim();
+            if (!name || !url) return;
+            trackers.push({ name, url, logoUrl });
+            localStorage.setItem('usageTrackers', JSON.stringify(trackers));
+            renderTrackers();
+            trackerForm.reset();
+        };
+
+        renderTrackers();
+    </script>
+</body>
+</html>

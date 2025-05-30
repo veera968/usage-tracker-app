@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Usage Tracker App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --primary: #4f8cff;
+            --secondary: #ffb347;
+            --background: #f4f6fb;
+            --card-bg: #fff;
+            --accent: #34c759;
+            --danger: #ff4d4f;
+            --text: #222;
+            --muted: #888;
+        }
+        body {
+            background: var(--background);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: var(--text);
+        }
+        .container {
+            max-width: 400px;
+            margin: 40px auto;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 32px 24px;
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 24px;
+        }
+        .input-group {
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--muted);
+            font-size: 0.95em;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1em;
+            background: #f9f9f9;
+            transition: border 0.2s;
+        }
+        input[type="text"]:focus, input[type="password"]:focus {
+            border: 1.5px solid var(--primary);
+            outline: none;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 8px;
+        }
+        .btn:hover {
+            background: var(--secondary);
+            color: #222;
+        }
+        .error {
+            color: var(--danger);
+            font-size: 0.95em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .tracker-ui {
+            display: none;
+            margin-top: 24px;
+        }
+        .usage-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .usage-item {
+            background: #f7faff;
+            border-left: 4px solid var(--accent);
+            margin-bottom: 12px;
+            padding: 12px 16px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .usage-item span {
+            font-weight: 500;
+        }
+        .logout-btn {
+            background: var(--danger);
+            margin-top: 16px;
+        }
+        .backend-ui {
+            margin-top: 32px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid #e0e0e0;
+        }
+        .backend-ui h2 {
+            color: var(--secondary);
+            margin-top: 0;
+        }
+        .backend-ui pre {
+            background: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.95em;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Usage Tracker App</h1>
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" required autocomplete="username">
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required autocomplete="current-password">
+            </div>
+            <div class="error" id="loginError"></div>
+            <button class="btn" type="submit">Login</button>
+        </form>
+        <div class="tracker-ui" id="trackerUI">
+            <h2 style="color:var(--accent);margin-bottom:16px;">Track Usage</h2>
+            <form id="usageForm">
+                <div class="input-group">
+                    <label for="activity">Activity</label>
+                    <input type="text" id="activity" required>
+                </div>
+                <div class="input-group">
+                    <label for="duration">Duration (minutes)</label>
+                    <input type="text" id="duration" required pattern="\\d+">
+                </div>
+                <button class="btn" type="submit">Add Usage</button>
+            </form>
+            <ul class="usage-list" id="usageList"></ul>
+            <button class="btn logout-btn" id="logoutBtn">Logout</button>
+        </div>
+        <div class="backend-ui">
+            <h2>Backend UI (Mock)</h2>
+            <pre id="backendData">
+No data yet.
+            </pre>
+        </div>
+    </div>
+    <script>
+        // Simple mock user
+        const USER = { username: "user", password: "pass" };
+        let usageData = [];
+
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+        const trackerUI = document.getElementById('trackerUI');
+        const usageForm = document.getElementById('usageForm');
+        const usageList = document.getElementById('usageList');
+        const backendData = document.getElementById('backendData');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        function renderUsage() {
+            usageList.innerHTML = '';
+            usageData.forEach((item, idx) => {
+                const li = document.createElement('li');
+                li.className = 'usage-item';
+                li.innerHTML = `<span>${item.activity}</span> <span>${item.duration} min</span>`;
+                usageList.appendChild(li);
+            });
+            backendData.textContent = JSON.stringify(usageData, null, 2) || "No data yet.";
+        }
+
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            if (username === USER.username && password === USER.password) {
+                loginError.textContent = '';
+                loginForm.style.display = 'none';
+                trackerUI.style.display = 'block';
+            } else {
+                loginError.textContent = 'Invalid username or password.';
+            }
+        });
+
+        usageForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const activity = document.getElementById('activity').value.trim();
+            const duration = document.getElementById('duration').value.trim();
+            if (!activity || !/^\d+$/.test(duration)) return;
+            usageData.push({ activity, duration });
+            renderUsage();
+            usageForm.reset();
+        });
+
+        logoutBtn.addEventListener('click', function() {
+            trackerUI.style.display = 'none';
+            loginForm.style.display = 'block';
+            usageData = [];
+            renderUsage();
+        });
+
+        // Initial render
+        renderUsage();
+    </script>
+</body>
+</html>
